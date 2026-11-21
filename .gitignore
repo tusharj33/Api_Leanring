@@ -37,3 +37,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Build / reports ###
+test-output/
+allure-results/
+
+### IntelliJ (whole folder) ###
+.idea/
