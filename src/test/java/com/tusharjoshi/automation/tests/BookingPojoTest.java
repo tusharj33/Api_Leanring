@@ -1,4 +1,4 @@
-package tests;
+package com.tusharjoshi.automation.tests;
 
 import com.tusharjoshi.automation.pojo.Booking;
 import com.tusharjoshi.automation.pojo.BookingDates;
