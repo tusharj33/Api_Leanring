@@ -1,6 +1,9 @@
 package com.tusharjoshi.automation.tests;
 
-import io.restassured.RestAssured;
+import io.restassured.config.LogConfig;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
@@ -14,19 +17,28 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
 public class BookingChainTest {
+    // Each class owns its spec, so classes can run in parallel without
+    // overwriting a shared static RestAssured.baseURI
+    private RequestSpecification spec;
+
     private static String token;
     private static int bookinId;
 
     @BeforeClass
     public void setup() {
-        RestAssured.baseURI = "https://restful-booker.herokuapp.com";
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        // per-class spec: no shared global baseURI, and failure logging set on
+        // the spec instead of the global RestAssured config
+        spec = new RequestSpecBuilder()
+                .setBaseUri("https://restful-booker.herokuapp.com")
+                .setConfig(RestAssuredConfig.config().logConfig(
+                        LogConfig.logConfig().enableLoggingOfRequestAndResponseIfValidationFails()))
+                .build();
     }
 
     //is API alive
     @Test(priority = 0)
     public void healthCheck() {
-        given()
+        given().spec(spec)
                 .when()
                 .get("/ping")
                 .then()
@@ -35,7 +47,7 @@ public class BookingChainTest {
 
     @Test(priority = 1, dependsOnMethods = "healthCheck")
     public void getToken() {
-        token = given()
+        token = given().spec(spec)
                 .contentType(ContentType.JSON)
                 .body("""
                         { "username": "admin", "password": "password123" }
@@ -66,7 +78,7 @@ public class BookingChainTest {
                 }
                 """;
         bookinId =
-                given()
+                given().spec(spec)
                         .contentType(ContentType.JSON)
                         //.accept(ContentType.JSON)
                         .body(reqbody)
@@ -83,7 +95,7 @@ public class BookingChainTest {
 
     @Test(dependsOnMethods = "createBooking")
     public void getBooking() {
-        given()
+        given().spec(spec)
                 .contentType(ContentType.JSON)
                 .pathParam("id", bookinId)
                 .when()
@@ -111,7 +123,7 @@ public class BookingChainTest {
                   "additionalneeds": "Dinner"
                 }
                 """;
-        given()
+        given().spec(spec)
                 .contentType(ContentType.JSON)
                 .header("Cookie", "token=" + token)
                 .pathParam("id", bookinId)
@@ -129,7 +141,7 @@ public class BookingChainTest {
     public void showBookings() {
         if (bookinId < 1)
             return;
-        Response response = given()
+        Response response = given().spec(spec)
                 .pathParam("id", bookinId)
                 .when()
                 .get("/booking/{id}");

@@ -1,0 +1,30 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Parallel API suite.
+  Run: mvn clean test -Dsurefire.suiteXmlFiles=testng-parallel.xml
+  or right-click this file in IntelliJ -> Run.
+
+  Two <test> blocks run side by side (parallel="tests"):
+   1. Independent tests: every method stands alone, so methods run in parallel.
+   2. Chained flows: methods depend on each other (create -> get -> update ...),
+      so each CLASS runs on its own thread, but methods inside a class stay in order.
+  LoginTest (Selenium) is deliberately not included.
+-->
+<suite name="API Parallel Suite" parallel="tests" thread-count="2" verbose="1">
+
+    <test name="Independent tests (parallel methods)" parallel="methods" thread-count="4">
+        <classes>
+            <class name="com.tusharjoshi.automation.tests.PostsTest"/>
+            <class name="com.tusharjoshi.automation.tests.CrudTest"/>
+        </classes>
+    </test>
+
+    <test name="Chained flows (parallel classes)" parallel="classes" thread-count="3">
+        <classes>
+            <class name="com.tusharjoshi.automation.tests.BookingChainTest"/>
+            <class name="com.tusharjoshi.automation.tests.BookingPojoTest"/>
+            <class name="com.tusharjoshi.automation.tests.BookingApiTest"/>
+        </classes>
+    </test>
+
+</suite>

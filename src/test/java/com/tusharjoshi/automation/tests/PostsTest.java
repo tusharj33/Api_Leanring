@@ -2,7 +2,8 @@ package com.tusharjoshi.automation.tests;
 
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
-import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -15,15 +16,19 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class PostsTest {
+    // Each class owns its spec, so classes can run in parallel without
+    // overwriting a shared static RestAssured.baseURI
+    private RequestSpecification spec;
+
 
     @BeforeClass
     public void dataSetup() {
-        RestAssured.baseURI = "https://jsonplaceholder.typicode.com";
+        spec = new RequestSpecBuilder().setBaseUri("https://jsonplaceholder.typicode.com").build();   // per-class spec: no shared global baseURI
     }
 
     @Test
     public void getSinglePost() {
-        given()
+        given().spec(spec)
                 .when()
                 .get("/posts/1")
                 .then()
@@ -34,7 +39,7 @@ public class PostsTest {
 
     @Test
     public void getCount() {
-        given()
+        given().spec(spec)
                 .when()
                 .get("/posts")
                 .then()
@@ -46,7 +51,7 @@ public class PostsTest {
 
     @Test
     public void getCounts() {
-        given()
+        given().spec(spec)
                 .queryParam("userID", 1)
                 .when()
                 .get("/posts")
@@ -58,14 +63,14 @@ public class PostsTest {
 
     @Test
     public void getParam() {
-        given()
+        given().spec(spec)
                 .pathParam("userId", 2)
                 .when()
                 .get("/posts/{userId}")
                 .then()
                 .statusCode(lessThan(500))
                 .log().status();
-        Response response = given()
+        Response response = given().spec(spec)
                 .when()
                 .get("/posts/1");
 
@@ -90,7 +95,7 @@ public class PostsTest {
 
     @Test
     public void getMydata() {
-        Response response = given()
+        Response response = given().spec(spec)
                 .when()
                 .get("/posts/");
         JsonPath js = response.jsonPath();

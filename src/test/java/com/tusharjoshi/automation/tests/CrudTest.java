@@ -1,6 +1,7 @@
 package com.tusharjoshi.automation.tests;
 
-import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.Assert;
@@ -14,9 +15,13 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class CrudTest {
+    // Each class owns its spec, so classes can run in parallel without
+    // overwriting a shared static RestAssured.baseURI
+    private RequestSpecification spec;
+
     @BeforeClass
     public void setup() {
-        RestAssured.baseURI = "https://jsonplaceholder.typicode.com";
+        spec = new RequestSpecBuilder().setBaseUri("https://jsonplaceholder.typicode.com").build();   // per-class spec: no shared global baseURI
     }
 
     @Test
@@ -30,7 +35,7 @@ public class CrudTest {
                 }
                 """;
 
-        given().contentType(ContentType.JSON)
+        given().spec(spec).contentType(ContentType.JSON)
                 .body(requestbody)
                 .log().all()
                 .when()
@@ -52,7 +57,7 @@ public class CrudTest {
                 
                 }
                 """;
-        given()
+        given().spec(spec)
                 .contentType(ContentType.JSON)
                 .body(requestbody)
                 .put("/posts/12")
@@ -66,7 +71,7 @@ public class CrudTest {
 
     @Test
     public  void  usePatch(){
-        given()
+        given().spec(spec)
                 .contentType(ContentType.JSON)
                 .body("{ \"title\": \"Patched MyAPI Testing\" }")
                 .when()
@@ -79,13 +84,13 @@ public class CrudTest {
     }
     @Test
     public  void  useDel(){
-        given()
+        given().spec(spec)
                 .when()
                 .delete("/posts/12234")
                 .then()
                 .statusCode(200);
 
-        given()
+        given().spec(spec)
                 .when()
                  .then()
                 .statusCode(200)

@@ -3,10 +3,11 @@ package com.tusharjoshi.automation.tests;
 import com.tusharjoshi.automation.pojo.Booking;
 import com.tusharjoshi.automation.pojo.BookingDates;
 import com.tusharjoshi.automation.pojo.BookingResponse;
-import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 import io.restassured.http.ContentType;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -17,14 +18,18 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
 public class BookingPojoTest {
+    // Each class owns its spec, so classes can run in parallel without
+    // overwriting a shared static RestAssured.baseURI
+    private RequestSpecification spec;
+
 
 
     private static int bookingId;
     private static Booking requestBooking;
 
-    @BeforeTest
+    @BeforeClass
     public void setup() {
-        RestAssured.baseURI = "https://restful-booker.herokuapp.com";
+        spec = new RequestSpecBuilder().setBaseUri("https://restful-booker.herokuapp.com").build();   // per-class spec: no shared global baseURI
 
     }
 
@@ -40,7 +45,7 @@ public class BookingPojoTest {
         System.out.println(chkin + " " + chkout);
         Assert.assertTrue(chkout.isAfter(chkin));
         BookingResponse response =
-                given()
+                given().spec(spec)
                         .contentType(ContentType.JSON)
                         .body(requestBooking)
                         .when()
@@ -63,7 +68,7 @@ public class BookingPojoTest {
 
     @Test(dependsOnMethods = "createBookingwithPOJO")
     public void getBookingasPOJO() {
-        Booking fetched = given()
+        Booking fetched = given().spec(spec)
                 .pathParam("id", bookingId)
                 .when()
                 .get("/booking/{id}")
@@ -85,7 +90,7 @@ public class BookingPojoTest {
     @Test(dependsOnMethods = "getBookingasPOJO")
     public void updateBooking() {
         String token =
-                given()
+                given().spec(spec)
                         .contentType(ContentType.JSON)
                         .body("{ \"username\": \"admin\", \"password\": \"password123\" }")
                         .when()
@@ -98,7 +103,7 @@ public class BookingPojoTest {
         requestBooking.setTotalprice(9999);
         requestBooking.setAdditionalneeds("Airport Pickdrop");
         Booking updated =
-                given()
+                given().spec(spec)
                         .contentType(ContentType.JSON)
                         .cookie("token", token)
                         .pathParam("id", bookingId)
@@ -116,7 +121,7 @@ public class BookingPojoTest {
     @Test(dependsOnMethods = "updateBooking")
     public void getBookingMatchesSchema() {
 
-        given()
+        given().spec(spec)
                 .accept("application/json")
                 .pathParam("id", bookingId)
                 .when()
@@ -124,7 +129,7 @@ public class BookingPojoTest {
                 .then()
                 .statusCode(200)
                 .log().all();
-        given()
+        given().spec(spec)
                 .accept("application/json")
                 .pathParam("id", bookingId)
                 .when()
@@ -138,7 +143,7 @@ public class BookingPojoTest {
 
     /*@DataProvider(name = "allBookingIds")
     public Object[][] allBookingIds() {
-        List<Integer> ids = given()
+        List<Integer> ids = given().spec(spec)
                 .baseUri("https://restful-booker.herokuapp.com")
                 .accept("application/json")
                 .get("/booking")
@@ -156,7 +161,7 @@ public class BookingPojoTest {
 
     @Test(dataProvider = "allBookingIds",dependsOnMethods = "getBookingMatchesSchema")
     public void bookingMatchesSchema(int bookingId) {
-        given()
+        given().spec(spec)
                 .accept("application/json")
                 .pathParam("id", bookingId)
                 .when()

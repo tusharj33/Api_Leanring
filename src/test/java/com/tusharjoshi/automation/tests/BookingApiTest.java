@@ -1,6 +1,7 @@
 package com.tusharjoshi.automation.tests;   // change to match your package
 
-import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
 import io.restassured.http.ContentType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -9,13 +10,17 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class BookingApiTest {
+    // Each class owns its spec, so classes can run in parallel without
+    // overwriting a shared static RestAssured.baseURI
+    private RequestSpecification spec;
+
 
     private String token;
     private int bookingId;
 
     @BeforeClass
     public void setup() {
-        RestAssured.baseURI = "https://restful-booker.herokuapp.com";
+        spec = new RequestSpecBuilder().setBaseUri("https://restful-booker.herokuapp.com").build();   // per-class spec: no shared global baseURI
     }
 
     // 1. Get an auth token (needed for PUT, PATCH, DELETE)
@@ -28,7 +33,7 @@ public class BookingApiTest {
             }
             """;
 
-        token = given()
+        token = given().spec(spec)
                 .contentType(ContentType.JSON)
                 .body(body)
                 .when()
@@ -55,7 +60,7 @@ public class BookingApiTest {
             }
             """;
 
-        bookingId = given()
+        bookingId = given().spec(spec)
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .body(body)
@@ -73,7 +78,7 @@ public class BookingApiTest {
     // 3. Read the booking (GET by id)
     @Test(priority = 3, dependsOnMethods = "createBooking")
     public void getBookingById() {
-        given()
+        given().spec(spec)
                 .accept(ContentType.JSON)
                 .pathParam("id", bookingId)
                 .when()
@@ -99,7 +104,7 @@ public class BookingApiTest {
             }
             """;
 
-        given()
+        given().spec(spec)
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .cookie("token", token)
@@ -122,7 +127,7 @@ public class BookingApiTest {
             }
             """;
 
-        given()
+        given().spec(spec)
                 .contentType(ContentType.JSON)
                 .accept(ContentType.JSON)
                 .cookie("token", token)
@@ -139,7 +144,7 @@ public class BookingApiTest {
     // 6. Delete (DELETE) - needs token
     @Test(priority = 6, dependsOnMethods = {"createToken", "createBooking"})
     public void deleteBooking() {
-        given()
+        given().spec(spec)
                 .cookie("token", token)
                 .pathParam("id", bookingId)
                 .when()
@@ -151,7 +156,7 @@ public class BookingApiTest {
     // 7. Confirm it's gone (negative check)
     @Test(priority = 7, dependsOnMethods = "deleteBooking")
     public void getDeletedBookingReturns404() {
-        given()
+        given().spec(spec)
                 .pathParam("id", bookingId)
                 .when()
                 .get("/booking/{id}")
