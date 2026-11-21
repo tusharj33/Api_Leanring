@@ -3,6 +3,13 @@ package com.tusharjoshi.automation.tests;
 import com.tusharjoshi.automation.pojo.Booking;
 import com.tusharjoshi.automation.pojo.BookingDates;
 import com.tusharjoshi.automation.pojo.BookingResponse;
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.testng.Assert;
@@ -16,6 +23,8 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
+@Epic("Hotel Booking API")
+@Feature("Booking with POJOs")
 public class BookingPojoTest {
 
 
@@ -25,10 +34,14 @@ public class BookingPojoTest {
     @BeforeTest
     public void setup() {
         RestAssured.baseURI = "https://restful-booker.herokuapp.com";
+        RestAssured.filters(new AllureRestAssured());   // attach every request/response to the Allure report
 
     }
 
     @Test(priority = 1)
+    @Story("Create booking")
+    @Severity(SeverityLevel.BLOCKER)
+    @Description("Creates a booking from a POJO and checks the POST response")
     public void createBookingwithPOJO() {
         requestBooking = new Booking("Tushar", "Joshi", 5000, true,
                 new BookingDates("2026-12-20", "2026-12-28"),
@@ -62,6 +75,9 @@ public class BookingPojoTest {
 
 
     @Test(dependsOnMethods = "createBookingwithPOJO")
+    @Story("Fetch booking")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Fetches the booking and compares it field by field with the request POJO")
     public void getBookingasPOJO() {
         Booking fetched = given()
                 .pathParam("id", bookingId)
@@ -83,6 +99,9 @@ public class BookingPojoTest {
     }
 
     @Test(dependsOnMethods = "getBookingasPOJO")
+    @Story("Update booking")
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Updates price and needs with PUT (token required) and checks the response")
     public void updateBooking() {
         String token =
                 given()
@@ -114,6 +133,9 @@ public class BookingPojoTest {
     }
 
     @Test(dependsOnMethods = "updateBooking")
+    @Story("Schema validation")
+    @Severity(SeverityLevel.NORMAL)
+    @Description("Validates the GET response against booking-schema.json")
     public void getBookingMatchesSchema() {
 
         given()

@@ -17,6 +17,7 @@
         <testng.version>7.11.0</testng.version>
         <rest-assured.version>5.5.0</rest-assured.version>
         <jackson.version>2.23.0</jackson.version>
+        <allure.version>2.29.0</allure.version>
 
         <!-- Plugin versions -->
         <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
@@ -56,6 +57,20 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Reporting: Allure -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <version>${allure.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-rest-assured</artifactId>
+            <version>${allure.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
