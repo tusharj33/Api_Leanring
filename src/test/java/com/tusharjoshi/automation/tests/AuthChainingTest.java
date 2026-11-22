@@ -7,6 +7,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Properties;
+
 import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -16,21 +20,25 @@ public class AuthChainingTest {
 
     public static String accessToken;
     public static int userId;
+    public  static String uri,username,password;
 
     @BeforeClass
-    public void setUp() {
-        RestAssured.baseURI = "https://dummyjson.com";
+    public void setUp() throws Exception {
+        Properties props = new Properties();
+        props.load(new FileInputStream("src/test/java/com/tusharjoshi/automation/tests/info.properties"));
+        uri=props.getProperty("base.uri");
+        username = props.getProperty("api.username");
+        password = props.getProperty("api.password");
+        RestAssured.baseURI = uri;
         login();
     }
 
     static void login() {
+        
         String body = """
-                {
-                  "username": "emilys",
-                  "password": "emilyspass",
-                  "expiresInMins": 30
-                }
-                """;
+            {"username":"%s","password":"%s"}
+            """.formatted(username,password);
+
         Response res = given()
                 .contentType(ContentType.JSON)
                 .body(body)

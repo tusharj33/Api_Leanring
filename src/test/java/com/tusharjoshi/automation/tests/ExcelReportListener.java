@@ -1,5 +1,6 @@
 package com.tusharjoshi.automation.tests;
 
+import io.restassured.RestAssured;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -142,6 +143,7 @@ public class ExcelReportListener implements ITestListener, ISuiteListener {
             Sheet sum = wb.createSheet("Summary");
             Object[][] summary = {
                     {"Suite", suite.getName()},
+                    {"URI used", AuthChainingTest.uri},
                     {"Run Time", LocalDateTime.now().format(TS)},
                     {"Total", total},
                     {"Passed", passed},
