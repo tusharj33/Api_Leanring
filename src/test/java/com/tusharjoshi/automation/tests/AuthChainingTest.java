@@ -20,13 +20,13 @@ public class AuthChainingTest {
 
     public static String accessToken;
     public static int userId;
-    public  static String uri,username,password;
+    public static String uri, username, password;
 
     @BeforeClass
     public void setUp() throws Exception {
         Properties props = new Properties();
         props.load(new FileInputStream("src/test/java/com/tusharjoshi/automation/tests/info.properties"));
-        uri=props.getProperty("base.uri");
+        uri = props.getProperty("base.uri");
         username = props.getProperty("api.username");
         password = props.getProperty("api.password");
         RestAssured.baseURI = uri;
@@ -34,10 +34,11 @@ public class AuthChainingTest {
     }
 
     static void login() {
-        
+
+
         String body = """
-            {"username":"%s","password":"%s"}
-            """.formatted(username,password);
+                {"username":"%s","password":"%s"}
+                """.formatted(username, password);
 
         Response res = given()
                 .contentType(ContentType.JSON)
@@ -56,15 +57,15 @@ public class AuthChainingTest {
     }
 
     @Test()
-    public  void getCurrentUser_headerWay(){
+    public void getCurrentUser_headerWay() {
         given()
                 .contentType(ContentType.JSON)
-                .header("Authorization","Bearer "+accessToken)
+                .header("Authorization", "Bearer " + accessToken)
                 .when()
                 .get("/auth/me")
                 .then()
                 .statusCode(200)
-                .body("username",equalTo("emilys"));
+                .body("username", equalTo("emilys"));
 
     }
 
@@ -76,15 +77,15 @@ public class AuthChainingTest {
                 .get("/auth/me")
                 .then()
                 .statusCode(200)
-                .body("username",equalTo("emilys"));
+                .body("username", equalTo("emilys"));
     }
-@Test
+
+    @Test
     public void noToken_shouldFail() {
         given()
                 .when()
                 .get("/auth/me")
                 .then()
                 .statusCode(401);
-    enableLoggingOfRequestAndResponseIfValidationFails();
     }
 }
